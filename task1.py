@@ -10,7 +10,7 @@ import numpy as np
 
 #Make a list with random number between 0 and 9
 
-array = np.random.randint(0, 9, (5, 5))
+array = np.random.randint(0, 9, (2, 2))
 num_rows, num_cols = array.shape
 #initially set to the absolute worst path
 lowestSum = 9 * num_rows * num_rows
@@ -62,9 +62,14 @@ def checkNode(x, y):
     if x == num_rows - 1 and y == num_cols - 1:   
         sum = 0   
         #adds the number at the coordinate, which is at the end of every level
-        for level in tree:
-            sum += array[level[len(level) - 1]]       
-        
+# =============================================================================
+#         for level in tree:
+#             sum += array[level[len(level) - 1]]       
+# =============================================================================
+        for cord in previousNodes:
+            sum += array[cord]
+
+
         if sum < lowestSum:
             lowestSum = sum
             print(sum)

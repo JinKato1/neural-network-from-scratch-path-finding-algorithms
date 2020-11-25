@@ -1,11 +1,5 @@
 # -*- coding: utf-8 -*-
 """
-Created on Wed Nov 25 12:27:51 2020
-
-@author: katoj
-"""
-# -*- coding: utf-8 -*-
-"""
 Created on Tue Nov 17 09:28:36 2020
 
 @author: katoj
@@ -14,10 +8,97 @@ Created on Tue Nov 17 09:28:36 2020
 import numpy as np 
 
 
+def addNode(x, y, x1, y1):
+    if (x, y) in tree[len(tree) - 1]:
+        tree.append([(x1, y1)])
+    else:
+        tree[len(tree) - 1].append((x1, y1))
+
+def checkNode(x, y):
+    
+    global lowestSum
+
+    isFinished = True
+
+    #instead of using recursion. just set x and y. Like a pointer
+    while isFinished:
+    
+        lastLevel = tree[len(tree) - 1]
+        
+        previousNodes = []    
+        for level in tree:
+            previousNodes.append(level[len(level) - 1])
+            
+            
+        if x == num_rows - 1 and y == num_cols - 1:   
+            sum = 0   
+            
+            for cord in previousNodes:
+                sum += array[cord]
+    
+            if sum < lowestSum:
+                lowestSum = sum
+                shortestPath = previousNodes
+            #checkNode the last coordinate in the previous list
+            secondToLastList = tree[len(tree) - 2]
+            x, y = secondToLastList[len(secondToLastList) - 1]
+            
+        #check right
+        elif (y + 1 < num_cols and y + 1 >= 0 
+            and (x, y + 1) not in previousNodes and (x, y + 1) not in lastLevel):
+            
+            addNode(x, y, x, y + 1)
+            y += 1
+            
+        #check bellow
+        elif (x + 1 < num_rows and x + 1 >= 0 
+              and (x + 1, y) not in previousNodes and (x + 1, y) not in lastLevel):
+            addNode(x, y, x + 1, y)
+            x += 1
+        #check left
+        elif (y - 1 < num_cols and y - 1 >= 0 
+              and (x, y - 1) not in previousNodes and (x, y - 1) not in lastLevel):
+            addNode(x, y, x, y - 1)
+            y -= 1
+        #check above
+        elif (x - 1 < num_rows and x - 1 >= 0 
+              and (x - 1, y) not in previousNodes and (x - 1, y) not in lastLevel):
+            addNode(x, y, x - 1, y)
+            x -= 1
+        else:
+            if (x, y) == (0, 0):
+                isFinished = False
+                print(lowestSum)
+                print(shortestPath)
+                
+            elif (x, y) in tree[len(tree) - 1]:
+                secondToLastList = tree[len(tree) - 2]
+                #checkNode(*(secondToLastList[len(secondToLastList) - 1]))
+                x, y = secondToLastList[len(secondToLastList) - 1]
+            elif (x, y) in tree[len(tree) - 2]:
+                tree.pop()
+                secondToLastList = tree[len(tree) - 2]
+                #checkNode(*(secondToLastList[len(secondToLastList) - 1]))
+                x, y = secondToLastList[len(secondToLastList) - 1]
+"""
+    if you reach here it means that the node has nowhere else to go  
+    if you get to the end 
+        if you are in the furthest level go back
+        if you are in the second to last level 
+            delete the furthest level and start from the right most element
+            of the second to last level
+"""    
+"""
+    if you get to the first node and you can't go anywhere end 
+"""
+
+
 #Make a list with random number between 0 and 9
 
-array = np.random.randint(0, 9, (3, 3))
+array = np.random.randint(0, 9, (5, 5))
 num_rows, num_cols = array.shape
+#initially set to the absolute worst path
+lowestSum = 9 * num_rows * num_rows
 
 print(array)
 
@@ -36,89 +117,16 @@ isBeginning = True
 level1 = [(0,0)]
 
 tree = [[(0,0)]]
-#tree = [[(0, 0)], [(0, 1)], [(0, 2)], [(1, 2)]]
+
 
 
 #takes in the coordinates of the original node and the coordinates of the
 #node that needs to be added to the tree
 #if the last level includes (x, y) returns creates a new level (list)
 #otherwise adds to the last level (list) of the tree
-def addNode(x, y, x1, y1):
-    if (x, y) in tree[len(tree) - 1]:
-        tree.append([(x1, y1)])
-    else:
-        tree[len(tree) - 1].append((x1, y1))
-
-def checkNode(x, y):
-
-    lastLevel = tree[len(tree) - 1]
-    
-    previousNodes = []    
-    for level in tree:
-        previousNodes.append(level[len(level) - 1])
-        
-
-    #stop the recursion 
-    
-    #check if it reached goal
-    if x == num_rows - 1 and y == num_cols - 1:   
-        sum = 0   
-        #adds the number at the coordinate, which is at the end of every level
-        for level in tree:
-            sum += array[level[len(level) - 1]]       
-        print(sum)
-        
-        #checkNode the last coordinate in the previous list
-        secondToLastList = tree[len(tree) - 2]
-        checkNode(*(secondToLastList[len(secondToLastList) - 1]))
-        
-    #check right
-    elif (y + 1 < num_cols and y + 1 >= 0 
-        and (x, y + 1) not in (previousNodes and lastLevel)):
-        
-        addNode(x, y, x, y + 1)
-        checkNode(x, y + 1)
-        
-    #check bellow
-    elif (x + 1 < num_rows and x + 1 >= 0 
-          and (x + 1, y) not in previousNodes and lastLevel):
-        addNode(x, y, x + 1, y)
-        checkNode(x + 1, y)
-    #check left
-    elif (y - 1 < num_cols and y - 1 >= 0 
-          and (x, y - 1) not in previousNodes and lastLevel):
-        addNode(x, y, x, y - 1)
-        checkNode(x, y - 1)
-    #check above
-    elif (x - 1 < num_rows and x - 1 >= 0 
-          and (x - 1, y) not in previousNodes and lastLevel):
-        addNode(x, y, x - 1, y)
-        checkNode(x - 1, y)
-    else:
-        if (x, y) == (0, 0):
-            return False
-        elif (x, y) in tree[len(tree) - 1]:
-            secondToLastList = tree[len(tree) - 2]
-            checkNode(*(secondToLastList[len(secondToLastList) - 1]))
-        elif (x, y) in tree[len(tree) - 2]:
-            tree.pop()
-            secondToLastList = tree[len(tree) - 2]
-            checkNode(*(secondToLastList[len(secondToLastList) - 1]))
-"""
-    if you reach here it means that the node has nowhere else to go  
-    if you get to the end 
-        if you are in the furthest level go back
-        if you are in the second to last level 
-            delete the furthest level and start from the right most element
-            of the second to last level
-"""    
-"""
-    if you get to the first node and you can't go anywhere end 
-"""
     
 checkNode(*(0,0))
 
-print(tree)
 
 """
 Note:
