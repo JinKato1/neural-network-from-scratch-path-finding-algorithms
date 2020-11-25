@@ -10,7 +10,7 @@ import numpy as np
 
 #Make a list with random number between 0 and 9
 
-array = np.random.randint(0, 9, (2, 3))
+array = np.random.randint(0, 9, (3, 3))
 num_rows, num_cols = array.shape
 
 print(array)
@@ -22,6 +22,7 @@ print(array)
 """
 
 
+isBeginning = True
 
 #list of lists 
 #each list represent a level 
@@ -30,7 +31,7 @@ level1 = [(0,0)]
 
 tree = [[(0,0)]]
 #tree = [[(0, 0)], [(0, 1)], [(0, 2)], [(1, 2)]]
-lastLevel = tree[len(tree) - 1]
+
 
 #takes in the coordinates of the original node and the coordinates of the
 #node that needs to be added to the tree
@@ -43,11 +44,16 @@ def addNode(x, y, x1, y1):
         tree[len(tree) - 1].append((x1, y1))
 
 def checkNode(x, y):
+
+    lastLevel = tree[len(tree) - 1]
     
     previousNodes = []    
     for level in tree:
         previousNodes.append(level[len(level) - 1])
         
+        
+    #stop the recursion 
+    
     #check if it reached goal
     if x == num_rows - 1 and y == num_cols - 1:   
         sum = 0   
@@ -55,9 +61,11 @@ def checkNode(x, y):
         for level in tree:
             sum += array[level[len(level) - 1]]       
         print(sum)
-        #secondToLastList = tree[len(tree) - 2]
-        #checkNode(*(secondToLastList[len(secondToLastList) - 1]))
-        return True
+        
+        #checkNode the last coordinate in the previous list
+        secondToLastList = tree[len(tree) - 2]
+        checkNode(*(secondToLastList[len(secondToLastList) - 1]))
+        
     #check right
     elif (y + 1 < num_cols and y + 1 >= 0 
         and (x, y + 1) not in (previousNodes and lastLevel)):
@@ -80,13 +88,28 @@ def checkNode(x, y):
           and (x - 1, y) not in previousNodes and lastLevel):
         addNode(x, y, x - 1, y)
         checkNode(x - 1, y)
-    #if you reach here it means that the node has nowhere else to go 
-    #go back one list and check the right most coordinate and do check node
-    #if it reaches here you can delete the furthest list 
+    else:
+        if (x, y) == (0, 0):
+            return False
+        elif (x, y) in tree[len(tree) - 1]:
+            secondToLastList = tree[len(tree) - 2]
+            checkNode(*(secondToLastList[len(secondToLastList) - 1]))
+        elif (x, y) in tree[len(tree) - 2]:
+            tree.pop()
+            secondToLastList = tree[len(tree) - 2]
+            checkNode(*(secondToLastList[len(secondToLastList) - 1]))
+"""
+    if you reach here it means that the node has nowhere else to go  
+    if you get to the end 
+        if you are in the furthest level go back
+        if you are in the second to last level 
+            delete the furthest level and start from the right most element
+            of the second to last level
+"""    
+"""
+    if you get to the first node and you can't go anywhere end 
+"""
     
-    secondToLastList = tree[len(tree) - 2]
-    checkNode(*(secondToLastList[len(secondToLastList) - 1]))
-
 checkNode(*(0,0))
 
 print(tree)
