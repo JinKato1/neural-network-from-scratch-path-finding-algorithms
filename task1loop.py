@@ -1,5 +1,11 @@
 # -*- coding: utf-8 -*-
 """
+Created on Wed Nov 25 12:27:51 2020
+
+@author: katoj
+"""
+# -*- coding: utf-8 -*-
+"""
 Created on Tue Nov 17 09:28:36 2020
 
 @author: katoj
@@ -10,10 +16,8 @@ import numpy as np
 
 #Make a list with random number between 0 and 9
 
-array = np.random.randint(0, 9, (5, 5))
+array = np.random.randint(0, 9, (3, 3))
 num_rows, num_cols = array.shape
-#initially set to the absolute worst path
-lowestSum = 9 * num_rows * num_rows
 
 print(array)
 
@@ -46,8 +50,6 @@ def addNode(x, y, x1, y1):
         tree[len(tree) - 1].append((x1, y1))
 
 def checkNode(x, y):
-    
-    global lowestSum
 
     lastLevel = tree[len(tree) - 1]
     
@@ -55,7 +57,7 @@ def checkNode(x, y):
     for level in tree:
         previousNodes.append(level[len(level) - 1])
         
-        
+
     #stop the recursion 
     
     #check if it reached goal
@@ -64,41 +66,37 @@ def checkNode(x, y):
         #adds the number at the coordinate, which is at the end of every level
         for level in tree:
             sum += array[level[len(level) - 1]]       
+        print(sum)
         
-        if sum < lowestSum:
-            lowestSum = sum
-            print(sum)
-            print(previousNodes)
         #checkNode the last coordinate in the previous list
         secondToLastList = tree[len(tree) - 2]
         checkNode(*(secondToLastList[len(secondToLastList) - 1]))
         
     #check right
     elif (y + 1 < num_cols and y + 1 >= 0 
-        and (x, y + 1) not in previousNodes and (x, y + 1) not in lastLevel):
+        and (x, y + 1) not in (previousNodes and lastLevel)):
         
         addNode(x, y, x, y + 1)
         checkNode(x, y + 1)
         
     #check bellow
     elif (x + 1 < num_rows and x + 1 >= 0 
-          and (x + 1, y) not in previousNodes and (x + 1, y) not in lastLevel):
+          and (x + 1, y) not in previousNodes and lastLevel):
         addNode(x, y, x + 1, y)
         checkNode(x + 1, y)
     #check left
     elif (y - 1 < num_cols and y - 1 >= 0 
-          and (x, y - 1) not in previousNodes and (x, y - 1) not in lastLevel):
+          and (x, y - 1) not in previousNodes and lastLevel):
         addNode(x, y, x, y - 1)
         checkNode(x, y - 1)
     #check above
     elif (x - 1 < num_rows and x - 1 >= 0 
-          and (x - 1, y) not in previousNodes and (x - 1, y) not in lastLevel):
+          and (x - 1, y) not in previousNodes and lastLevel):
         addNode(x, y, x - 1, y)
         checkNode(x - 1, y)
     else:
         if (x, y) == (0, 0):
             return False
-            
         elif (x, y) in tree[len(tree) - 1]:
             secondToLastList = tree[len(tree) - 2]
             checkNode(*(secondToLastList[len(secondToLastList) - 1]))
@@ -120,6 +118,7 @@ def checkNode(x, y):
     
 checkNode(*(0,0))
 
+print(tree)
 
 """
 Note:
