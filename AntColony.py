@@ -1,5 +1,5 @@
 import numpy as np
-
+import random
 """
 A graph repsentation of the connected coordinates
 returns a dictionary of dictionaries representing which coordinate is connect to which coordinates 
@@ -52,7 +52,7 @@ def choosePath(currentCord):
     tau_x_etas = {}
     tau_x_eta_sum = 0
     probabilities = {}
-    currentPath = [startCord, (0, 1), (1, 1), (2, 0)]
+    currentPath = [startCord]
     deadEnd = []
 
     for nextCord in pheromones[currentCord]:
@@ -66,29 +66,60 @@ def choosePath(currentCord):
     for cord in tau_x_etas:
         probabilities[cord] = tau_x_etas[cord] / tau_x_eta_sum
 
-    #if there are no value for tau times etas list that means that it is a dead end
-    if not tau_x_etas:
+    # if there are no value for tau times etas list that means that it is a dead end
+    if not probabilities:
         deadEnd.append(currentCord)
-    else:
-        currentPath.append(currentCord)
+    elif len(probabilities) == 1: #means there is only one choice
+        chosenPath = list(probabilities.keys())[0]
+    else: #implementing the roulette wheel
+        probs = sorted(list(probabilities.values()), reverse=True)
+        cumulSum = []
+        for i in range(len(probs)):
+            sum = 0
+            for j in range(i, len(probs)):
+                sum += probs[j]
+            cumulSum.append(sum)
 
-    print(probabilities)
+        rand_num = random.uniform(0, 1)
+        chosenProb = 0
+        for i in range(len(cumulSum) - 1):
+            if i == len(cumulSum) - 1:
+                chosenProb = probs[i]
+            if cumulSum[i + 1] <= rand_num <= cumulSum[i]:
+                chosenProb = probs[i]
+
+        #finding the coordinate from the chosen probability
+        for cord, prob in probabilities.items():
+            if prob == chosenProb:
+                return cord
+
+
+
 rho = 0.01
 Q = 1
 alpha = 1
 beta = 1
 numAnts = 4
 maxIteration = 1000
-num_row = 3
-num_col = 3
+num_row = 2
+num_col = 2
 pheromones = {}
 startCord = (0, 0)
 endCord = (num_row - 1, num_col - 1)
-weightGrid = np.random.randint(0, 9, (num_row, num_col))
-
+#initializes a weight between 1 to 10 instead of 0 to 9 since one of the equation use the weight as a denominator
+#and you can't divide by 0. The added 1 will be subtracted at the end when we find the shortest path.
+weightGrid = np.array([[6, 2], [2, 1]])
+#np.random.randint(1, 10, (num_row, num_col))
+print(weightGrid)
 
 initPheromones()
-choosePath((1, 0))
+print(choosePath((0, 0)))
+"""
+[[0 5 0]
+ [0 4 6]
+ [2 3 8]]
+(2, 0)
+"""
 # currentCord = (0, 0)
 # tau_x_etas = {}
 # tau_x_eta_sum = 0
@@ -103,7 +134,6 @@ choosePath((1, 0))
 # for cord in tau_x_etas:
 #     probabilities[cord] = tau_x_etas[cord] / tau_x_eta_sum
 
-print(weightGrid)
 
 #the coordinates you can go from a coordinate and its pheromones
 
