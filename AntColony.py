@@ -6,6 +6,14 @@ returns a dictionary of dictionaries representing which coordinate is connect to
 and sets the initial pheromone value to 0.5
 The first key is the coordinate that you want to know which coordinates are connected from 
 and the second key is the coordinates that are connected to that coordinate 
+
+
+when sorting a dictionary in descending order 
+I used this code 
+sorted(d.items(), key=lambda x: x[1], reverse=True)
+which I found in 
+https://stackoverflow.com/questions/613183/how-do-i-sort-a-dictionary-by-value
+written by user Mark
 """
 def initPheromones():
     #convert coordinates to indices
@@ -47,13 +55,13 @@ def antPath():
             probabilities[cord] = tau_x_etas[cord] / tau_x_eta_sum
 
         print(probabilities)
-
-def choosePath(currentCord):
+#takes a current coordinate of the ant and the path (a list of tuples of coordinates) that the ant has taken
+#returns the next coordinate that the ant probabilisticly took. Returns the input coordinate if it is a deadend
+def choosePath(currentCord, currentPath):
     tau_x_etas = {}
     tau_x_eta_sum = 0
     probabilities = {}
     currentPath = [startCord]
-    deadEnd = []
 
     for nextCord in pheromones[currentCord]:
         if nextCord not in currentPath:
@@ -68,30 +76,30 @@ def choosePath(currentCord):
 
     # if there are no value for tau times etas list that means that it is a dead end
     if not probabilities:
-        deadEnd.append(currentCord)
+        return currentCord
     elif len(probabilities) == 1: #means there is only one choice
-        chosenPath = list(probabilities.keys())[0]
+        return list(probabilities.keys())[0]
     else: #implementing the roulette wheel
-        probs = sorted(list(probabilities.values()), reverse=True)
+        probs = dict(sorted(probabilities.items(), key=lambda x: x[1], reverse=True))
         cumulSum = []
         for i in range(len(probs)):
             sum = 0
             for j in range(i, len(probs)):
-                sum += probs[j]
+                sum += list(probs.values())[j]
             cumulSum.append(sum)
-
         rand_num = random.uniform(0, 1)
         chosenProb = 0
-        for i in range(len(cumulSum) - 1):
+        #check where the rand_num lies in the cumulSum
+        for i in range(len(cumulSum)):
             if i == len(cumulSum) - 1:
-                chosenProb = probs[i]
+                return list(probs)[i]
             if cumulSum[i + 1] <= rand_num <= cumulSum[i]:
-                chosenProb = probs[i]
+                return list(probs)[i]
 
         #finding the coordinate from the chosen probability
-        for cord, prob in probabilities.items():
-            if prob == chosenProb:
-                return cord
+        # for cord, prob in probabilities.items():
+        #     if prob == chosenProb:
+        #         return cord
 
 
 
@@ -101,19 +109,18 @@ alpha = 1
 beta = 1
 numAnts = 4
 maxIteration = 1000
-num_row = 2
-num_col = 2
+num_row = 3
+num_col = 4
 pheromones = {}
 startCord = (0, 0)
 endCord = (num_row - 1, num_col - 1)
 #initializes a weight between 1 to 10 instead of 0 to 9 since one of the equation use the weight as a denominator
 #and you can't divide by 0. The added 1 will be subtracted at the end when we find the shortest path.
-weightGrid = np.array([[6, 2], [2, 1]])
-#np.random.randint(1, 10, (num_row, num_col))
+weightGrid = np.random.randint(1, 10, (num_row, num_col))
 print(weightGrid)
 
 initPheromones()
-print(choosePath((0, 0)))
+print(choosePath((1, 0), [startCord, (0, 1), (0, 2), (1, 2), (1, 1), (2, 1), (2, 1)]))
 """
 [[0 5 0]
  [0 4 6]
