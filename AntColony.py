@@ -120,7 +120,6 @@ print(weightGrid)
 #     print(fromCord)
 #     print(toCord)
 
-#print(pheromones)
 """
 for fromCord in pheromones:
     for toCord in pheromones[fromCord]:
