@@ -18,6 +18,8 @@ def updateArrays(x, y, xn, yn):
 
 weightArray = np.random.randint(0, 9, (10, 10))
 
+#np.random.randint(0, 9, (2, 2))
+#weightArrayTest = [[2, 6], [7, 4]]
 
 num_rows, num_cols = weightArray.shape
 # initially set to the absolute worst path
