@@ -9,8 +9,7 @@ w = 0.8
 
 #hyper parameters
 learning_rate = 0.01
-nn_shape_size = [2, 2, 2]
-#[784, 10, 10]
+nn_shape_size = [784, 30, 10]
 i = 1.5
 
 def sigmoid(num):
@@ -65,14 +64,23 @@ def feed_forward(weights_mtrx, inputs):
     for layer in range(1, len(weights_mtrx)):
         input = neuron_layers[-1]
         layer_acts = []
-        for n in range(len(weights_mtrx[layer])):
-            test = weights_mtrx[layer][n]
-            sum_n = weights_mtrx[layer][n].dot(input)
-            act_n = sigmoid(sum_n)
-            layer_acts.append(act_n)
-        #bias does not have previous value so the "input" of the bias will be always 1
-        layer_acts.append(1)
-        neuron_layers.append(np.array([layer_acts]))
+        #finding the the out for each neuron
+        #if it is the last layer
+        if layer == len(weights_mtrx) - 1:
+            net_os = []
+            for n in range(len(weights_mtrx[layer])):
+                sum_n = weights_mtrx[layer][n].dot(input)
+                net_os.append(sum_n)
+            out = softmax(np.array(net_os))
+            neuron_layers.append(out)
+        else:
+            for n in range(len(weights_mtrx[layer])):
+                sum_n = weights_mtrx[layer][n].dot(input)
+                act_n = sigmoid(sum_n)
+                layer_acts.append(act_n)
+            #bias does not have previous value so the "input" of the bias will be always 1
+            layer_acts.append(1)
+            neuron_layers.append(np.array([layer_acts]))
 
     return neuron_layers
 
@@ -80,8 +88,9 @@ def feed_forward(weights_mtrx, inputs):
 #returns the sum and a list of (squared errors)/2 for each output
 def squared_error_sum(output, target):
     sq_error_sum = 0
-    for i in range(len(output[0]) - 1):
-        sq_error = 0.5 * (output[0][i] - target[i])**2
+    #for i in range(len(output[0]) - 1):
+    for i in range(output[0].size):
+        sq_error = 0.5 * (output[i] - target[i])**2
         sq_error_sum += sq_error
 
     return sq_error_sum
@@ -95,9 +104,9 @@ def output_layer_back(wb_mtrx, out_mtrx, targets):
     o_errs = []
     #calculating the error for the output neuron
     o_layer_out = out_mtrx[-1]
-    for n in range(len(o_layer_out[0]) - 1):
+    for n in range(o_layer_out.size):
         target = targets[n]
-        out_o = out_mtrx[-1][0][n]
+        out_o = o_layer_out[n]
         o_err = -(target - out_o) * out_o * (1 - out_o)
         o_errs.append(o_err)
 
@@ -196,7 +205,7 @@ def check_result(test_data, label, wb_mtrx):
     #deleting the last value in the out array since it is the activation value of bias
     output_layer = out[-1][0]
     output_layer = np.delete(output_layer, [-1])
-    if np.argmax(output_layer) == label:
+    if (np.argmax(output_layer)) == label:
         return 1
     else:
         return 0
@@ -211,39 +220,49 @@ def evaluate(test_dataset, wb_mtrx, num_tests):
     num_correct = 0
 
     for i in range(num_tests):
-        test_input = np.concatenate((test_dataset[i][0].flatten(), [1]))
+        test_input = test_data[i][0].flatten()
+        test_input = test_input.tolist()
+        test_input.append(1)
+
         target = test_dataset[i][1]
+
         num_correct += check_result(test_input, target, wb_mtrx)
 
     return num_correct/num_tests
 
-"""
+
+def softmax(net_os):
+    return math.e ** net_os / np.sum(math.e ** net_os)
+
+
+#not working version of
 training_data, validation_data, test_data = load_data_wrapper()
 training_data = list(training_data)
-
-print(training_data[0])
 test_data = list(test_data)
-print(test_data[0])
 random.shuffle(training_data)
-wb_mtrx = init_weights_bias([784, 10, 10])
-print(wb_mtrx)
-print(evaluate(test_data, wb_mtrx, 500))
+wb_mtrx = init_weights_bias([784, 30, 10])
 
-for i in range(3000):
-    inputs = np.concatenate((training_data[i][0].flatten(), [1]))
+print(evaluate(test_data, wb_mtrx, 1000))
+
+for i in range(20000):
+    inputs = training_data[i][0].flatten()
+    inputs = inputs.tolist()
+    inputs.append(1)
+
     target = training_data[i][1].flatten()
+    target = target.tolist()
+
     out_mtrx = feed_forward(wb_mtrx, inputs)
+    # if i % 10000 == 0:
+    #      print(squared_error_sum(out_mtrx[-1], target))
+    #print(squared_error_sum(out_mtrx[-1], target))
     new_out_w, o_errs = output_layer_back(wb_mtrx, out_mtrx, target)
     new_wb = hidden_layer_back(wb_mtrx, out_mtrx, o_errs, inputs)
-    print(squared_error_sum(out_mtrx[-1], target))
     new_wb.append(new_out_w)
     wb_mtrx = new_wb
 
-print(wb_mtrx)
-print(evaluate(test_data, wb_mtrx, 500))
-"""
-# print(feed_forward(wb_mtrx, inputs)[-1])
-# print(squared_error_sum(out_mtrx[-1], target))
+print(evaluate(test_data, wb_mtrx, 1000))
+
 
 # training_data, validation_data, test_data = load_data_wrapper()
 # training_data = list(training_data)
@@ -267,7 +286,7 @@ print(evaluate(test_data, wb_mtrx, 500))
 
 
 
-#
+
 # inputs = [0.05, 0.1, 0.3, 0.4, 1]
 # target = [0.01, 0.99, 0.5, 0.5]
 # wb_mtrx = init_weights_bias([4, 3, 4])
@@ -276,35 +295,32 @@ print(evaluate(test_data, wb_mtrx, 500))
 #
 # for i in range(1000):
 #     out_mtrx = feed_forward(wb_mtrx, inputs)
+#     print(squared_error_sum(out_mtrx[-1], target))
 #     new_out_w, o_errs = output_layer_back(wb_mtrx, out_mtrx, target)
-#     new_wb = hidden_layer_back(wb_mtrx, out_mtrx, o_errs)
+#     new_wb = hidden_layer_back(wb_mtrx, out_mtrx, o_errs, inputs)
 #     new_wb.append(new_out_w)
 #     wb_mtrx = new_wb
 # print(wb_mtrx)
 # print(feed_forward(wb_mtrx, inputs)[-1])
 # print(target)
 
-ex_wb = [np.array([[0.15, 0.20, 0.35], [0.25, 0.3, 0.35]]),
-           np.array([[0.40, 0.45, 0.6], [0.50, 0.55, 0.6]])]
 
-ex_wb = [np.array([[0.149780716, 0.19956143, 0.35], [0.24975114, 0.29950229, 0.35]]),
-           np.array([[0.35891648, 0.408666186, 0.6], [0.511301270, 0.561370121, 0.6]])]
-ex_inputs = [0.05, 0.1, 1]
-target = [0.01, 0.99]
 
-for i in range(2000):
-    ex_out = feed_forward(ex_wb, ex_inputs)
-    print(squared_error_sum(ex_out[-1], target))
-    new_out_w, o_errs = output_layer_back(ex_wb, ex_out, target)
-    new_wb = hidden_layer_back(ex_wb, ex_out, o_errs, ex_inputs)
-    new_wb.append(new_out_w)
-    ex_wb = new_wb
-
-print(new_wb)
-
-ex_out = feed_forward(ex_wb, ex_inputs)
-print(squared_error_sum(ex_out[-1], target))
-new_out_w, o_errs = output_layer_back(ex_wb, ex_out, target)
-new_wb = hidden_layer_back(ex_wb, ex_out, o_errs)
-new_wb.append(new_out_w)
-ex_wb = new_wb
+# #working version of the example
+# ex_wb = [np.array([[0.15, 0.20, 0.35], [0.25, 0.3, 0.35]]),
+#            np.array([[0.40, 0.45, 0.6], [0.50, 0.55, 0.6]])]
+#
+# # ex_wb = [np.array([[0.149780716, 0.19956143, 0.35], [0.24975114, 0.29950229, 0.35]]),
+# #            np.array([[0.35891648, 0.408666186, 0.6], [0.511301270, 0.561370121, 0.6]])]
+# ex_inputs = [0.05, 0.1, 1]
+# target = [0.01, 0.99]
+#
+# for i in range(2000):
+#     ex_out = feed_forward(ex_wb, ex_inputs)
+#     print(squared_error_sum(ex_out[-1], target))
+#     new_out_w, o_errs = output_layer_back(ex_wb, ex_out, target)
+#     new_wb = hidden_layer_back(ex_wb, ex_out, o_errs, ex_inputs)
+#     new_wb.append(new_out_w)
+#     ex_wb = new_wb
+#
+# print(new_wb)
