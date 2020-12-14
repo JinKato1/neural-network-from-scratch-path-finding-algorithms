@@ -3,4 +3,4 @@ venv/
 ScratchNote.py
 train-images-idx3-ubyte.gz
 mnist.pkl.gz
-
+nn_ex.py
