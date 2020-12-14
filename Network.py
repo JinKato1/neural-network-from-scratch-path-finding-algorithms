@@ -124,6 +124,7 @@ def output_layer_back(wb_mtrx, out_mtrx, targets):
     w_primes = np.array(w_primes).reshape(nn_shape_size[-1], nn_shape_size[-2] + 1)
     return w_primes, o_errs
 
+
 # def hidden_layer_back(wb_mtrx, out_mtrx, o_errs):
 #
 #
@@ -234,34 +235,54 @@ def evaluate(test_dataset, wb_mtrx, num_tests):
 def softmax(net_os):
     return math.e ** net_os / np.sum(math.e ** net_os)
 
+# def SGD(training_data, epochs, mini_batch_size):
+#     for i in epochs:
+#         random.shuffle(training_data)
+#         mini_batches =
 
 #not working version of
 training_data, validation_data, test_data = load_data_wrapper()
 training_data = list(training_data)
-test_data = list(test_data)
-random.shuffle(training_data)
-wb_mtrx = init_weights_bias([784, 30, 10])
+# test_data = list(test_data)
+# random.shuffle(training_data)
 
-print(evaluate(test_data, wb_mtrx, 1000))
 
-for i in range(20000):
-    inputs = training_data[i][0].flatten()
-    inputs = inputs.tolist()
-    inputs.append(1)
+print(0 % 10)
+batch_size = 10
+mini_batch = []
 
-    target = training_data[i][1].flatten()
-    target = target.tolist()
+training_data = list(np.arange(30))
 
-    out_mtrx = feed_forward(wb_mtrx, inputs)
-    # if i % 10000 == 0:
-    #      print(squared_error_sum(out_mtrx[-1], target))
-    #print(squared_error_sum(out_mtrx[-1], target))
-    new_out_w, o_errs = output_layer_back(wb_mtrx, out_mtrx, target)
-    new_wb = hidden_layer_back(wb_mtrx, out_mtrx, o_errs, inputs)
-    new_wb.append(new_out_w)
-    wb_mtrx = new_wb
 
-print(evaluate(test_data, wb_mtrx, 1000))
+mini_batches = [training_data[i: i+batch_size] for i in range(0, len(training_data), batch_size)]
+
+for mini_batch in mini_batches:
+    for i in range(len(mini_batch)):
+        in_tar = mini_batch[i]
+        in_tar
+
+
+# wb_mtrx = init_weights_bias([784, 30, 10])
+#
+# print(evaluate(test_data, wb_mtrx, 1000))
+# for i in range(20000):
+#     inputs = training_data[i][0].flatten()
+#     inputs = inputs.tolist()
+#     inputs.append(1)
+#
+#     target = training_data[i][1].flatten()
+#     target = target.tolist()
+#
+#     out_mtrx = feed_forward(wb_mtrx, inputs)
+#     # if i % 10000 == 0:
+#     #      print(squared_error_sum(out_mtrx[-1], target))
+#     #print(squared_error_sum(out_mtrx[-1], target))
+#     new_out_w, o_errs = output_layer_back(wb_mtrx, out_mtrx, target)
+#     new_wb = hidden_layer_back(wb_mtrx, out_mtrx, o_errs, inputs)
+#     new_wb.append(new_out_w)
+#     wb_mtrx = new_wb
+#
+# print(evaluate(test_data, wb_mtrx, 1000))
 
 
 # training_data, validation_data, test_data = load_data_wrapper()
