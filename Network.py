@@ -4,13 +4,6 @@ import gzip
 import _pickle as cPickle
 import random
 
-t = 5
-w = 0.8
-
-#hyper parameters
-learning_rate = 0.01
-nn_shape_size = [784, 30, 10]
-i = 1.5
 
 def sigmoid(num):
     return 1 / (1 + math.exp(- num))
@@ -98,7 +91,7 @@ def squared_error_sum(output, target):
 
 #j is the column of the output layre which is the row of the previous layer
 #o is the row index of the output layer which indicate which output neuron it is
-def output_layer_back(wb_mtrx, out_mtrx, targets, olayer_delcs = None):
+def output_layer_back(wb_mtrx, out_mtrx, targets, gradc_mtrx):
     out_layer = wb_mtrx[-1]
     delta_cs = []
     o_errs = []
@@ -117,18 +110,9 @@ def output_layer_back(wb_mtrx, out_mtrx, targets, olayer_delcs = None):
             prev_out = out_mtrx[- 2][pw]
             o_err = o_errs[n]
             delta_c = o_err * prev_out
-            if olayer_delcs:
-                olayer_delcs[n][pw] += delta_c
-            #w_prime = weight - learning_rate * delta_w
-            else:
-                delta_cs.append(delta_c)
+            gradc_mtrx[-1][n][pw] = gradc_mtrx[-1][n][pw] + delta_c
 
-    if olayer_delcs:
-        return olayer_delcs, o_errs
-    else:
-        #reshaping the new delta_c to append later
-        delta_cs = np.array(delta_cs).reshape(nn_shape_size[-1], nn_shape_size[-2] + 1)
-        return delta_cs, o_errs
+    return gradc_mtrx, o_errs
 
 
 # def hidden_layer_back(wb_mtrx, out_mtrx, o_errs):
@@ -153,13 +137,11 @@ def output_layer_back(wb_mtrx, out_mtrx, targets, olayer_delcs = None):
 #             current_node = current_layer[n]
 #             for pw in range(len(current_node[pw])):
 
-def hidden_layer_back(wb_mtrx, out_mtrx, o_errs, inputs, delc_mtrx):
+def hidden_layer_back(wb_mtrx, out_mtrx, o_errs, inputs, gradc_mtrx):
     prev_errs = o_errs
-    delc_mtrx = []
 
     for l in range(len(wb_mtrx) - 2, -1, -1):
         n_errs = []
-        del_cs = []
         prev_layer_wbs = wb_mtrx[l + 1]
         for pn in range(len(prev_layer_wbs[0]) - 1):
             n_err = 0
@@ -179,12 +161,9 @@ def hidden_layer_back(wb_mtrx, out_mtrx, o_errs, inputs, delc_mtrx):
                 n_err = n_errs[n]
                 out_h1 = out_mtrx[l][n] * (1 - out_mtrx[l][n])
                 delta_c = n_err * out_h1 * prev_out
-                #w_prime = weight - learning_rate * delta_w
-                del_cs.append(delta_c)
-        # reshaping the new weights to append later
-        del_cs = np.array(del_cs).reshape(nn_shape_size[l + 1], nn_shape_size[l] + 1)
-        delc_mtrx.append(del_cs)
-    return delc_mtrx
+                gradc_mtrx[l][n][pn] = delta_c + gradc_mtrx[l][n][pn]
+
+    return gradc_mtrx
 
 def load_data():
     f = gzip.open('mnist.pkl.gz', 'rb')
@@ -194,12 +173,12 @@ def load_data():
 
 def load_data_wrapper():
     tr_d, va_d, te_d = load_data()
-    training_inputs = [np.reshape(x, (784, 1)) for x in tr_d[0]]
+    training_inputs = [np.concatenate((np.reshape(x, (784,)), [1])) for x in tr_d[0]]
     training_results = [vectorized_result(y) for y in tr_d[1]]
     training_data = zip(training_inputs, training_results)
-    validation_inputs = [np.reshape(x, (784, 1)) for x in va_d[0]]
+    validation_inputs = [np.reshape(x, (784, )) for x in va_d[0]]
     validation_data = zip(validation_inputs, va_d[1])
-    test_inputs = [np.reshape(x, (784, 1)) for x in te_d[0]]
+    test_inputs = [np.concatenate((np.reshape(x, (784,)), [1]))for x in te_d[0]]
     test_data = zip(test_inputs, te_d[1])
     return (training_data, validation_data, test_data)
 
@@ -223,17 +202,12 @@ def check_result(test_data, label, wb_mtrx):
 def evaluate(test_dataset, wb_mtrx, num_tests):
     if num_tests > 10000:
         raise Exception('num_tests should not be higher than 10,000')
-
     random.shuffle(test_dataset)
     num_correct = 0
 
     for i in range(num_tests):
-        test_input = test_data[i][0].flatten()
-        test_input = test_input.tolist()
-        test_input.append(1)
-
+        test_input = test_dataset[i][0]
         target = test_dataset[i][1]
-
         num_correct += check_result(test_input, target, wb_mtrx)
 
     return num_correct/num_tests
@@ -242,68 +216,57 @@ def evaluate(test_dataset, wb_mtrx, num_tests):
 def softmax(net_os):
     return math.e ** net_os / np.sum(math.e ** net_os)
 
+#Parameters: the matrix of weight & bias, the matrix of gradient of c
+#Returns: a matrix with update weight & bias
+def update_wb_mtrx(wb_mtrx, gradc_mtrx):
+    new_wb_mtrx = []
+    for i in range(len(wb_mtrx)):
+        new_wb_mtrx.append(wb_mtrx[i] - ((learning_rate / (batch_size)) * gradc_mtrx[i]))
+    return new_wb_mtrx
+
 # def SGD(training_data, epochs, mini_batch_size):
 #     for i in epochs:
 #         random.shuffle(training_data)
 #         mini_batches =
 
 #not working version of
+
+#hyper parameters
+learning_rate = 0.01
+nn_shape_size = [784, 30, 10]
+
 training_data, validation_data, test_data = load_data_wrapper()
 training_data = list(training_data)
-wb_mtrx = init_weights_bias([784, 30, 10])
+test_data = list(test_data)
 
-# input = training_data[0][0].flatten()
-# input = np.concatenate((input, [1]))
-# print(feed_forward(wb_mtrx, input))
-#
-# for i in range(10):
-#     print(sigmoid(sum(training_data[i][0])))
-
-# test_data = list(test_data)
-# random.shuffle(training_data)
-
+wb_mtrx = init_weights_bias(nn_shape_size)
+#matrix used to store the gradient of C, initiazed with 0
 
 batch_size = 10
 
-
-
-
-input_target = training_data[0]
-inputs = input_target[0].flatten()
-inputs = inputs.tolist()
-inputs.append(1)
-
-target = input_target[1].flatten()
-target = target.tolist()
-
-out_mtrx = feed_forward(wb_mtrx, inputs)
-#print(out_mtrx)
-outl_delta_cs, o_errs = output_layer_back(wb_mtrx, out_mtrx, target)
-#print(outl_delta_cs)
-delc_mtrx = hidden_layer_back(wb_mtrx, out_mtrx, o_errs, inputs)
-delc_mtrx.append(outl_delta_cs)
-delc_mtrx
-
 mini_batches = [training_data[i: i+batch_size] for i in range(0, len(training_data), batch_size)]
 
-for j in range(5):
-    for i in range(len(mini_batches[i])):
-        input_target = mini_batches[i]
-        inputs = input_target[0].flatten()
-        inputs = inputs.tolist()
-        inputs.append(1)
 
-        target = input_target[1].flatten()
-        target = target.tolist()
+for idx, mini_batch in enumerate(mini_batches):
+    # if idx % 100 == 0:
+    #     print(evaluate(test_data, wb_mtrx, 1000))
+    print(evaluate(test_data, wb_mtrx, 1000))
+    gradc_mtrx = []
+    for mtrx in wb_mtrx:
+        gradc_mtrx.append(np.zeros(mtrx.shape))
+
+    for sample in mini_batch:
+        inputs = sample[0]
+        target = sample[1]
 
         out_mtrx = feed_forward(wb_mtrx, inputs)
-        outl_delta_cs, o_errs = output_layer_back(wb_mtrx, out_mtrx, target)
+        gradc_mtrx, o_errs = output_layer_back(wb_mtrx, out_mtrx, target, gradc_mtrx)
+        gradc_mtrx = hidden_layer_back(wb_mtrx, out_mtrx, o_errs, inputs, gradc_mtrx)
 
-        delc_mtrx = hidden_layer_back(wb_mtrx, out_mtrx, o_errs, inputs)
-        delc_mtrx.append(outl_delta_cs)
+    wb_matrix = update_wb_mtrx(wb_mtrx, gradc_mtrx)
 
-        print(delc_mtrx)
-
+#print(evaluate(test_data, wb_mtrx, 10000))
+print(wb_mtrx)
 # wb_mtrx = init_weights_bias([784, 30, 10])
 #
 # print(evaluate(test_data, wb_mtrx, 1000))
