@@ -188,8 +188,8 @@ def vectorized_result(j):
 def check_result(test_data, label, wb_mtrx):
     out = feed_forward(wb_mtrx, test_data)
     #deleting the last value in the out array since it is the activation value of bias
-    output_layer = out[-1][0]
-    output_layer = np.delete(output_layer, [-1])
+    output_layer = out[-1]
+    #output_layer = np.delete(output_layer, [-1])
     if (np.argmax(output_layer)) == label:
         return 1
     else:
@@ -212,7 +212,11 @@ def evaluate(test_dataset, wb_mtrx, num_tests):
 
 
 def softmax(net_os):
-    return math.e ** net_os / np.sum(math.e ** net_os)
+    try:
+        return math.e ** net_os / np.sum(math.e ** net_os)
+    except ZeroDivisionError:
+        print(net_os)
+        return math.e ** net_os / np.sum(math.e ** net_os)
 
 #Parameters: the matrix of weight & bias, the matrix of gradient of c
 #Returns: a matrix with update weight & bias
@@ -227,10 +231,28 @@ def update_wb_mtrx(wb_mtrx, gradc_mtrx):
 #         random.shuffle(training_data)
 #         mini_batches =
 
+def minibatch_sgd(mini_batches, wb_mtrx):
+    for idx, mini_batch in enumerate(mini_batches):
+        if idx % 200 == 0:
+            print(evaluate(test_data, wb_mtrx, 500))
+        gradc_mtrx = []
+        for mtrx in wb_mtrx:
+            gradc_mtrx.append(np.zeros(mtrx.shape))
+
+        for sample in mini_batch:
+            inputs = sample[0]
+            target = sample[1].flatten()
+
+            out_mtrx = feed_forward(wb_mtrx, inputs)
+            gradc_mtrx, o_errs = output_layer_back(wb_mtrx, out_mtrx, target, gradc_mtrx)
+            gradc_mtrx = hidden_layer_back(wb_mtrx, out_mtrx, o_errs, inputs, gradc_mtrx)
+
+        wb_mtrx = update_wb_mtrx(wb_mtrx, gradc_mtrx)
+    return wb_mtrx
 #not working version of
 
 #hyper parameters
-learning_rate = 0.001
+learning_rate = 3
 nn_shape_size = [784, 30, 10]
 
 training_data, validation_data, test_data = load_data_wrapper()
@@ -242,31 +264,12 @@ wb_mtrx = init_weights_bias(nn_shape_size)
 
 batch_size = 10
 
-mini_batches = [training_data[i: i+batch_size] for i in range(0, len(training_data), batch_size)]
+mini_batches = [training_data[i: i + batch_size] for i in range(0, len(training_data), batch_size)]
 
 
-for idx, mini_batch in enumerate(mini_batches):
-    # if idx % 100 == 0:
-    #     print(evaluate(test_data, wb_mtrx, 1000))
-    if idx == 1000:
-        print(evaluate(test_data, wb_mtrx, 1000))
-        break
-    gradc_mtrx = []
-    for mtrx in wb_mtrx:
-        gradc_mtrx.append(np.zeros(mtrx.shape))
-
-    for sample in mini_batch:
-        inputs = sample[0]
-        target = sample[1]
-
-        out_mtrx = feed_forward(wb_mtrx, inputs)
-        gradc_mtrx, o_errs = output_layer_back(wb_mtrx, out_mtrx, target, gradc_mtrx)
-        gradc_mtrx = hidden_layer_back(wb_mtrx, out_mtrx, o_errs, inputs, gradc_mtrx)
-
-    wb_matrix = update_wb_mtrx(wb_mtrx, gradc_mtrx)
+wb_mtrx = minibatch_sgd(mini_batches, wb_mtrx)
 
 #print(evaluate(test_data, wb_mtrx, 10000))
-print(wb_mtrx)
 # wb_mtrx = init_weights_bias([784, 30, 10])
 #
 # print(evaluate(test_data, wb_mtrx, 1000))
@@ -332,21 +335,35 @@ print(wb_mtrx)
 
 
 
-# #working version of the example
-# ex_wb = [np.array([[0.15, 0.20, 0.35], [0.25, 0.3, 0.35]]),
-#            np.array([[0.40, 0.45, 0.6], [0.50, 0.55, 0.6]])]
-#
-# # ex_wb = [np.array([[0.149780716, 0.19956143, 0.35], [0.24975114, 0.29950229, 0.35]]),
-# #            np.array([[0.35891648, 0.408666186, 0.6], [0.511301270, 0.561370121, 0.6]])]
-# ex_inputs = [0.05, 0.1, 1]
-# target = [0.01, 0.99]
-#
-# for i in range(2000):
-#     ex_out = feed_forward(ex_wb, ex_inputs)
-#     print(squared_error_sum(ex_out[-1], target))
-#     new_out_w, o_errs = output_layer_back(ex_wb, ex_out, target)
-#     new_wb = hidden_layer_back(ex_wb, ex_out, o_errs, ex_inputs)
-#     new_wb.append(new_out_w)
-#     ex_wb = new_wb
-#
-# print(new_wb)
+#working version of the example
+wb_mtrx = [np.array([[0.15, 0.20, 0.35], [0.25, 0.3, 0.35]]),
+           np.array([[0.40, 0.45, 0.6], [0.50, 0.55, 0.6]])]
+wb_mtrx = init_weights_bias(nn_shape_size)
+# ex_wb = [np.array([[0.149780716, 0.19956143, 0.35], [0.24975114, 0.29950229, 0.35]]),
+#            np.array([[0.35891648, 0.408666186, 0.6], [0.511301270, 0.561370121, 0.6]])]
+# ex_input = [0.05, 0.1, 1]
+# ex_target = [0.01, 0.99]
+
+inputs = training_data[0][0]
+target = training_data[0][1].flatten()
+print("target:" + str(target))
+
+output = feed_forward(wb_mtrx, inputs)
+print(output[-1] * 100)
+print(np.argmax(output[-1] * 100))
+print(evaluate([(inputs,5)],wb_mtrx, 1))
+for i in range(500):
+    gradc_mtrx = []
+    for mtrx in wb_mtrx:
+        gradc_mtrx.append(np.zeros(mtrx.shape))
+
+    out_mtrx = feed_forward(wb_mtrx, inputs)
+    gradc_mtrx, o_errs = output_layer_back(wb_mtrx, out_mtrx, target, gradc_mtrx)
+    gradc_mtrx = hidden_layer_back(wb_mtrx, out_mtrx, o_errs, inputs, gradc_mtrx)
+
+    wb_mtrx = update_wb_mtrx(wb_mtrx, gradc_mtrx)
+
+output = feed_forward(wb_mtrx, inputs)
+out = output[-1]
+print(np.argmax(out))
+print(evaluate([(inputs,5)], wb_mtrx, 1))
