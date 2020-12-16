@@ -4,3 +4,7 @@ ScratchNote.py
 train-images-idx3-ubyte.gz
 mnist.pkl.gz
 nn_ex.py
+MNIST_Test_Data/
+MNIST_Train_Data/
+Pytorch_Task3_Scratch.py
+

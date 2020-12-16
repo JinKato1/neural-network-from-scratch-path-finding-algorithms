@@ -21,7 +21,6 @@ to. Bias is the column at the end of the ndarray.
 Weights and bias are intialized to randomly between 0 and 1.
 """
 
-
 def init_weights_bias(shape):
     weights = []
     num_layers = len(shape)
@@ -33,7 +32,6 @@ def init_weights_bias(shape):
         for row in range(len(layer)):
             layer[row][-1] = 0
         weights.append(layer)
-
     return weights
 
 #make sure to add 1 at the end of inputs array when intializing so that np.dot would work
@@ -232,7 +230,7 @@ def update_wb_mtrx(wb_mtrx, gradc_mtrx):
 #not working version of
 
 #hyper parameters
-learning_rate = 0.01
+learning_rate = 0.001
 nn_shape_size = [784, 30, 10]
 
 training_data, validation_data, test_data = load_data_wrapper()
@@ -250,7 +248,9 @@ mini_batches = [training_data[i: i+batch_size] for i in range(0, len(training_da
 for idx, mini_batch in enumerate(mini_batches):
     # if idx % 100 == 0:
     #     print(evaluate(test_data, wb_mtrx, 1000))
-    print(evaluate(test_data, wb_mtrx, 1000))
+    if idx == 1000:
+        print(evaluate(test_data, wb_mtrx, 1000))
+        break
     gradc_mtrx = []
     for mtrx in wb_mtrx:
         gradc_mtrx.append(np.zeros(mtrx.shape))
