@@ -96,23 +96,32 @@ def checkNode(array):
 """
     if you get to the first node and you can't go anywhere end 
 """
+def evalTime(dim, func):
+    for i in range(dim):
+        time0 = time()
+        array = np.random.randint(0, 9, (i, i))
+        func(array)
+        print("Training Time (in minutes) =", (time() - time0) / 60)
+
+#evalTime(7, checkNode)
 
 
 
 test_grids = Task1_Utils.test_grids(5, 5)
 time0 = time()
-array = np.random.randint(0, 9, (6, 6))
-print("Training Time (in minutes) =", (time() - time0)/60)
+array = np.random.randint(0, 9, (7, 7))
 
 shortest_path_cost, shortest_path = checkNode(array)
-
-print(shortest_path_cost, shortest_path)
-time0 = time()
-for sample in test_grids:
-    test_grid = sample[0]
-    test_path = sample[1]
-    #tree = [[(0, 0)]]
-    shortest_path_cost, shortest_path = checkNode(test_grid)
-    if test_path == shortest_path:
-        print("Correct!")
 print("Training Time (in minutes) =", (time() - time0)/60)
+# print(shortest_path_cost, shortest_path)
+# time0 = time()
+#
+# for sample in test_grids:
+#     test_grid = sample[0]
+#     test_path = sample[1]
+#     #tree = [[(0, 0)]]
+#     shortest_path_cost, shortest_path = checkNode(test_grid)
+#     if test_path == shortest_path:
+#         print("Correct!")
+# print("Training Time (in minutes) =", (time() - time0)/60)
+

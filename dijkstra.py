@@ -1,7 +1,7 @@
 import numpy as np
 import Task1_Utils
 
-def updateArrays(x, y, xn, yn):
+def updateArrays(x, y, xn, yn, array, unseenNodes):
     shortestDistance = array[x][y][1]
     neighbourWeight = array[xn][yn][0]
     neighbourSD = array[xn][yn][1]
@@ -14,72 +14,133 @@ def updateArrays(x, y, xn, yn):
         for unseenNode in unseenNodes:
             if unseenNode[1] == (xn, yn):
                 unseenNode[0] = shortestDistance + neighbourWeight
+    return array, unseenNodes
 
 
-weightArray = np.random.randint(0, 9, (10, 10))
-#np.random.randint(0, 9, (2, 2))
-#weightArrayTest = [[2, 6], [7, 4]]
+def run_dijkstra(weightArray):
+    num_rows, num_cols = weightArray.shape
+    # initially set to the absolute worst path
+    max = 9 * num_rows * num_rows
+    shortestDistance = []
+    unseenNodes = []
 
-num_rows, num_cols = weightArray.shape
-# initially set to the absolute worst path
-max = 9 * num_rows * num_rows
-shortestDistance = []
-unseenNodes = []
+    array = []
 
-print(weightArray)
+    for i in range(num_rows):
+        array.append([])
+        for j in range(num_cols):
+            array[i].append([weightArray[i][j], max, (), "notVisited"])
+    array[0][0] = [weightArray[0][0], 0, (), "visited"]
 
-array = []
+    for i in range(num_rows):
+        for j in range(num_cols):
+            weight, dist, prev, visitStatus = array[i][j]
+            unseenNodes.append([dist, (i, j)])
 
-for i in range(num_rows):
-    array.append([])
-    for j in range(num_cols):
-        array[i].append([weightArray[i][j], max, (), "notVisited"])
-array[0][0] = [weightArray[0][0], 0, (), "visited"]
-
-for i in range(num_rows):
-    for j in range(num_cols):
-        weight, dist, prev, visitStatus = array[i][j]
-        unseenNodes.append([dist, (i, j)])
-
-smallestDistance = max
-smallestDistanceCoord = None
-# pop this later
-smallestDistanceNodeIndex = None
-
-# find the coordinate with the smallest distance to check
-while unseenNodes:
     smallestDistance = max
-    for i in range(len(unseenNodes)):
-        dist, coord = unseenNodes[i]
-        if dist < smallestDistance:
-            smallestDistance = dist
-            smallestDistanceCoord = coord
-            smallestDistanceNodeIndex = i
+    smallestDistanceCoord = None
+    # pop this later
+    smallestDistanceNodeIndex = None
 
-    x, y = smallestDistanceCoord
+    # find the coordinate with the smallest distance to check
+    while unseenNodes:
+        smallestDistance = max + 1
+        for i in range(len(unseenNodes)):
+            dist, coord = unseenNodes[i]
+            if dist < smallestDistance:
+                smallestDistance = dist
+                smallestDistanceCoord = coord
+                smallestDistanceNodeIndex = i
 
-    if num_cols > y + 1 >= 0 and array[x][y + 1][3] == "notVisited":
-        updateArrays(x, y, x, y + 1)
-    if num_rows > x + 1 >= 0 and array[x + 1][y][3] == "notVisited":
-        updateArrays(x, y, x + 1, y)
-    if num_cols > y - 1 >= 0 and array[x][y - 1][3] == "notVisited":
-        updateArrays(x, y, x, y - 1)
-    if num_rows > x - 1 >= 0 and array[x - 1][y][3] == "notVisited":
-        updateArrays(x, y, x, y - 1)
-    #delete current node from the unseenNode list
-    unseenNodes.pop(smallestDistanceNodeIndex)
-    array[x][y][3] = "visited"
+        x, y = smallestDistanceCoord
 
-currentCord = (num_rows - 1, num_cols - 1)
-shortestPath = []
-while currentCord != (0, 0):
-    x, y = currentCord
-    shortestPath.insert(0, currentCord)
-    currentCord = array[x][y][2]
+        if num_cols > y + 1 >= 0 and array[x][y + 1][3] == "notVisited":
+            array, unseenNodes = updateArrays(x, y, x, y + 1, array, unseenNodes)
+        if num_rows > x + 1 >= 0 and array[x + 1][y][3] == "notVisited":
+            array, unseenNodes = updateArrays(x, y, x + 1, y, array, unseenNodes)
+        if num_cols > y - 1 >= 0 and array[x][y - 1][3] == "notVisited":
+            array, unseenNodes = updateArrays(x, y, x, y - 1, array, unseenNodes)
+        if num_rows > x - 1 >= 0 and array[x - 1][y][3] == "notVisited":
+            array, unseenNodes = updateArrays(x, y, x, y - 1, array, unseenNodes)
+        # delete current node from the unseenNode list
 
-shortestPath.insert(0, (0, 0))
-print(shortestPath)
-#adding the weight of the first array to the shortest distance
-print(array[num_rows - 1][num_cols - 1][1] + array[0][0][0])
+        unseenNodes.pop(smallestDistanceNodeIndex)
+        array[x][y][3] = "visited"
 
+    currentCord = (num_rows - 1, num_cols - 1)
+    shortestPath = []
+    while currentCord != (0, 0):
+        x, y = currentCord
+        shortestPath.insert(0, currentCord)
+        currentCord = array[x][y][2]
 
+    shortestPath.insert(0, (0, 0))
+    print(shortestPath)
+    # adding the weight of the first array to the shortest distance
+    print(array[num_rows - 1][num_cols - 1][1] + array[0][0][0])
+
+weightArray = np.random.randint(0, 9, (50, 50))
+run_dijkstra(weightArray)
+#
+# num_rows, num_cols = weightArray.shape
+# # initially set to the absolute worst path
+# max = 9 * num_rows * num_rows
+# shortestDistance = []
+# unseenNodes = []
+#
+# array = []
+#
+# for i in range(num_rows):
+#     array.append([])
+#     for j in range(num_cols):
+#         array[i].append([weightArray[i][j], max, (), "notVisited"])
+# array[0][0] = [weightArray[0][0], 0, (), "visited"]
+#
+# for i in range(num_rows):
+#     for j in range(num_cols):
+#         weight, dist, prev, visitStatus = array[i][j]
+#         unseenNodes.append([dist, (i, j)])
+#
+# smallestDistance = max
+# smallestDistanceCoord = None
+# # pop this later
+# smallestDistanceNodeIndex = None
+#
+# # find the coordinate with the smallest distance to check
+# while unseenNodes:
+#     smallestDistance = max + 1
+#     for i in range(len(unseenNodes)):
+#         dist, coord = unseenNodes[i]
+#         if dist < smallestDistance:
+#             smallestDistance = dist
+#             smallestDistanceCoord = coord
+#             smallestDistanceNodeIndex = i
+#
+#     x, y = smallestDistanceCoord
+#
+#     if num_cols > y + 1 >= 0 and array[x][y + 1][3] == "notVisited":
+#         updateArrays(x, y, x, y + 1)
+#     if num_rows > x + 1 >= 0 and array[x + 1][y][3] == "notVisited":
+#         updateArrays(x, y, x + 1, y)
+#     if num_cols > y - 1 >= 0 and array[x][y - 1][3] == "notVisited":
+#         updateArrays(x, y, x, y - 1)
+#     if num_rows > x - 1 >= 0 and array[x - 1][y][3] == "notVisited":
+#         updateArrays(x, y, x, y - 1)
+#     #delete current node from the unseenNode list
+#
+#     unseenNodes.pop(smallestDistanceNodeIndex)
+#     array[x][y][3] = "visited"
+#
+# currentCord = (num_rows - 1, num_cols - 1)
+# shortestPath = []
+# while currentCord != (0, 0):
+#     x, y = currentCord
+#     shortestPath.insert(0, currentCord)
+#     currentCord = array[x][y][2]
+#
+# shortestPath.insert(0, (0, 0))
+# print(shortestPath)
+# #adding the weight of the first array to the shortest distance
+# print(array[num_rows - 1][num_cols - 1][1] + array[0][0][0])
+#
+#

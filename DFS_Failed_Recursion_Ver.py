@@ -10,7 +10,7 @@ import numpy as np
 
 #Make a list with random number between 0 and 9
 
-array = np.random.randint(0, 9, (2, 2))
+array = np.random.randint(0, 9, (4, 4))
 num_rows, num_cols = array.shape
 #initially set to the absolute worst path
 lowestSum = 9 * num_rows * num_rows
