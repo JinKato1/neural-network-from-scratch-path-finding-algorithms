@@ -1,5 +1,5 @@
 import numpy as np
-
+import Task1_Utils
 
 def updateArrays(x, y, xn, yn):
     shortestDistance = array[x][y][1]
@@ -17,7 +17,6 @@ def updateArrays(x, y, xn, yn):
 
 
 weightArray = np.random.randint(0, 9, (10, 10))
-
 #np.random.randint(0, 9, (2, 2))
 #weightArrayTest = [[2, 6], [7, 4]]
 

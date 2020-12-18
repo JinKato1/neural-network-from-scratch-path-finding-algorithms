@@ -1,5 +1,6 @@
 import numpy as np
 import random
+import Task1_Utils
 
 """
 A graph repsentation of the connected coordinates
@@ -158,6 +159,7 @@ maxIteration = 1000
 num_row = 5
 num_col = 5
 weight_grid = np.random.randint(1, 10, (num_row, num_col))
+#weight_grid = Task1_Utils.test_grids(num_row, num_col, low=1, high=10)[2][0]
 
 
 pheromones = {}

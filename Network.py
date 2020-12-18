@@ -213,10 +213,11 @@ def evaluate(test_dataset, wb_mtrx, num_tests):
 
 def softmax(net_os):
     try:
-        return math.e ** net_os / np.sum(math.e ** net_os)
+        out = math.e ** net_os / np.sum(math.e ** net_os)
     except ZeroDivisionError:
         print(net_os)
-        return math.e ** net_os / np.sum(math.e ** net_os)
+        return out
+    return out
 
 #Parameters: the matrix of weight & bias, the matrix of gradient of c
 #Returns: a matrix with update weight & bias
