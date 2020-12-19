@@ -1,5 +1,7 @@
 import numpy as np
 import Task1_Utils
+import matplotlib
+import time as time
 
 def updateArrays(x, y, xn, yn, array, unseenNodes):
     shortestDistance = array[x][y][1]
@@ -75,12 +77,22 @@ def run_dijkstra(weightArray):
         currentCord = array[x][y][2]
 
     shortestPath.insert(0, (0, 0))
-    print(shortestPath)
     # adding the weight of the first array to the shortest distance
-    print(array[num_rows - 1][num_cols - 1][1] + array[0][0][0])
+    shortest_path_cost = array[num_rows - 1][num_cols - 1][1] + array[0][0][0]
+
+    return shortest_path_cost, shortestPath
 
 weightArray = np.random.randint(0, 9, (50, 50))
 run_dijkstra(weightArray)
+
+
+for dim in range(50, 600, 50):
+    print(dim)
+    time0 = time.time()
+    run_dijkstra(np.random.randint(0, 9, (dim, dim)))
+    print((time.time() - time0))
+
+
 #
 # num_rows, num_cols = weightArray.shape
 # # initially set to the absolute worst path

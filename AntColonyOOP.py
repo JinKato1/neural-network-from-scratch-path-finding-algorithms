@@ -11,31 +11,43 @@ The first key is the coordinate that you want to know which coordinates are conn
 and the second key is the coordinates that are connected to that coordinate 
 
 """
-def init_pheromones():
-    #convert coordinates to indices
-    for x in range(num_row):
-        for y in range(num_col):
-            pheromones[x,y] = {}
-            #the end coordinate will be empty
-            if x == num_row - 1 and y == num_col - 1:
-                break
-            if (x, y) == (num_row - 2, num_col - 1) or (x, y) == (num_row - 1, num_col - 2):
-                pheromones[x, y][endCord] = 0.1
-                continue
-            if num_col > y + 1 >= 0 and (x, y + 1) != (0, 0):
-                pheromones[x,y][x, y + 1] = 0.1
-            if num_row > x + 1 >= 0 and (x + 1, y) != (0, 0):
-                pheromones[x, y][x + 1, y] = 0.1
-            if num_col > y - 1 >= 0 and (x, y - 1) != (0, 0):
-                pheromones[x, y][x, y - 1] = 0.1
-            if num_row > x - 1 >= 0 and (x - 1, y) != (0, 0):
-                pheromones[x, y][x - 1, y] = 0.1
+class AntColony:
+    def __init__(self, grid, num_ants, maxIteration, rho, Q, alpha, beta):
+        self.grid = grid
+        self.num_ants = num_ants
+        self.maxIteration = maxIteration
+        self.rho = rho
+        self.Q = Q
+        self.alpha = alpha
+        self.beta = beta
+        self.num_row, self.num_col = grid.shape
+        self.pheromones = init_pheromones()
 
-    return pheromones
+
+    def init_pheromones(self):
+        # convert coordinates to indices
+        for x in range(num_row):
+            for y in range(num_col):
+                pheromones[x, y] = {}
+                # the end coordinate will be empty
+                if x == num_row - 1 and y == num_col - 1:
+                    break
+                if (x, y) == (num_row - 2, num_col - 1) or (x, y) == (num_row - 1, num_col - 2):
+                    pheromones[x, y][endCord] = 0.1
+                    continue
+                if num_col > y + 1 >= 0 and (x, y + 1) != (0, 0):
+                    pheromones[x, y][x, y + 1] = 0.1
+                if num_row > x + 1 >= 0 and (x + 1, y) != (0, 0):
+                    pheromones[x, y][x + 1, y] = 0.1
+                if num_col > y - 1 >= 0 and (x, y - 1) != (0, 0):
+                    pheromones[x, y][x, y - 1] = 0.1
+                if num_row > x - 1 >= 0 and (x - 1, y) != (0, 0):
+                    pheromones[x, y][x - 1, y] = 0.1
+
+        return pheromones
 
 
 def update_ants(num_ants):
-
     bestTime = 0
     bestPath = []
     ants = []
@@ -48,11 +60,11 @@ def update_ants(num_ants):
             bestPath = path
 
 
-#gets the path from start to finish of an ant
+# gets the path from start to finish of an ant
 def ant_path():
     currentCord = startCord
     currentPath = [startCord]
-    #deadEnds is a dictionary of list with coordinate as keys and the coordinates of dead ends as values
+    # deadEnds is a dictionary of list with coordinate as keys and the coordinates of dead ends as values
     deadEnds = {}
     totalTime = 0
 
@@ -62,35 +74,31 @@ def ant_path():
         else:
             deadEnd = []
         next_cord = choosePath(currentCord, currentPath, deadEnd)
-        #means that it was a dead end
+        # means that it was a dead end
         if next_cord == currentCord:
-            return -1
-        #     print("was dead end")
-        #     if next_cord in deadEnds:
-        #         deadEnds.pop(next_cord)
-        #     #updating the current path
-        #     popped = currentPath.pop()
-        #     try:
-        #         deadEnds[currentPath[-1]].append(popped)
-        #     except KeyError:
-        #         deadEnds[currentPath[-1]] = [popped]
-        #     currentCord = currentPath[-1]
-        # else:
-        currentCord = next_cord
-        currentPath.append(next_cord)
+            if next_cord in deadEnds:
+                deadEnds.pop(next_cord)
+            # updating the current path
+            popped = currentPath.pop()
+            try:
+                deadEnds[currentPath[-1]].append(popped)
+            except KeyError:
+                deadEnds[currentPath[-1]] = [popped]
+            currentCord = currentPath[-1]
+        else:
+            currentCord = next_cord
+            currentPath.append(next_cord)
 
-    #calculating the total time of the path
+    # calculating the total time of the path
     for coord in currentPath:
         totalTime += weight_grid[coord]
 
     return totalTime, currentPath
 
 
-
-
-#takes  current coordinate of the ant and the path (a list of tuples of coordinates) that the ant has taken
-#returns the next coordinate that the ant probabilisticly took. Returns the input coordinate if it is a deadend
-def choosePath(currentCord, currentPath, deadEnds = []):
+# takes  current coordinate of the ant and the path (a list of tuples of coordinates) that the ant has taken
+# returns the next coordinate that the ant probabilisticly took. Returns the input coordinate if it is a deadend
+def choosePath(currentCord, currentPath, deadEnds=[]):
     tau_x_etas = {}
     tau_x_eta_sum = 0
     probabilities = {}
@@ -108,9 +116,9 @@ def choosePath(currentCord, currentPath, deadEnds = []):
     # if there are no value for tau times etas list that means that it is a dead end
     if not probabilities:
         return currentCord
-    elif len(probabilities) == 1: #means there is only one choice
+    elif len(probabilities) == 1:  # means there is only one choice
         return list(probabilities.keys())[0]
-    else: #implementing the roulette wheel
+    else:  # implementing the roulette wheel
         probs = dict(sorted(probabilities.items(), reverse=True))
         cumulSum = []
         for i in range(len(probs)):
@@ -120,14 +128,14 @@ def choosePath(currentCord, currentPath, deadEnds = []):
             cumulSum.append(sum)
         rand_num = random.uniform(0, 1)
         chosenProb = 0
-        #check where the rand_num lies in the cumulSum
+        # check where the rand_num lies in the cumulSum
         for i in range(len(cumulSum)):
             if i == len(cumulSum) - 1:
                 return list(probs)[i]
             if cumulSum[i + 1] <= rand_num <= cumulSum[i]:
                 return list(probs)[i]
 
-        #finding the coordinate from the chosen probability
+        # finding the coordinate from the chosen probability
         # for cord, prob in probabilities.items():
         #     if prob == chosenProb:
         #         return cord
@@ -139,7 +147,7 @@ def update_pheromones(pheromones, ants):
         for toCord in pheromones[fromCord]:
             pheromones[fromCord][toCord] = pheromones[fromCord][toCord] * (1 - rho)
             # add the pheromone
-    #adding the pheromone
+    # adding the pheromone
     for idx, ant in enumerate(ants):
         if idx != len(ants) - 1:
             time = ant[0]
@@ -151,8 +159,7 @@ def update_pheromones(pheromones, ants):
     return pheromones
 
 
-"""
-def run_aco(grid, num_ants = 2, maxIteration = 5, rho = 3, Q = 1,alpha = 1, beta = 1):
+def run_aco(grid, num_ants=2, maxIteration=15, rho=0.01, Q=1, alpha=1, beta=1):
     # weight grid
     num_row = 5
     num_col = 5
@@ -183,43 +190,38 @@ def run_aco(grid, num_ants = 2, maxIteration = 5, rho = 3, Q = 1,alpha = 1, beta
 
     # subtracting the 1 that I initially added to avoid dividing by zero
     bestTime = bestTime - 1 * len(bestPath)
-"""
-#parameters
-rho = 3
+
+
+# parameters
+rho = 0.01
 Q = 1
 alpha = 1
 beta = 1
 num_ants = 2
-maxIteration = 1
-#weight grid
-#initializes the weight between 1 to 10 instead of 0 to 9 since one of the equation use the weight as a denominator
-#and you can't divide by 0. The added 1 will be subtracted at the end when we find the shortest path.
-#weight_grid = np.random.randint(1, 10, (num_row, num_col))
-weight_grid = Task1_Utils.test_grids(20, 20, low=1, high=10)[0][0]
-num_row, num_col = weight_grid.shape
-
+maxIteration = 15
+# weight grid
+num_row = 8
+num_col = 8
+# initializes the weight between 1 to 10 instead of 0 to 9 since one of the equation use the weight as a denominator
+# and you can't divide by 0. The added 1 will be subtracted at the end when we find the shortest path.
+weight_grid = np.random.randint(1, 10, (num_row, num_col))
 print(weight_grid)
-#weight_grid = Task1_Utils.test_grids(num_row, num_col, low=1, high=10)[2][0]
+# weight_grid = Task1_Utils.test_grids(num_row, num_col, low=1, high=10)[2][0]
 
 
 pheromones = {}
 startCord = (0, 0)
 endCord = (num_row - 1, num_col - 1)
-#initially set to max time
+# initially set to max time
 bestTime = 10 * num_row * num_col
 bestPath = []
-
-
 
 pheromones = init_pheromones()
 
 for i in range(maxIteration):
     ants = []
     for ant in range(num_ants):
-        time_path = ant_path()
-        while time_path == -1:
-            time_path = ant_path()
-        time, path = time_path
+        time, path = ant_path()
         ants.append([time, path])
         if time < bestTime:
             bestTime = time
@@ -227,10 +229,10 @@ for i in range(maxIteration):
 
     pheromones = update_pheromones(pheromones, ants)
 
-#subtracting the 1 that I initially added to avoid dividing by zero
+# subtracting the 1 that I initially added to avoid dividing by zero
 bestTime = bestTime - 1 * len(bestPath)
-print(bestPath)
-print(bestTime)
+print(bestPath, bestTime)
+
 """
 [[0 5 0]
  [0 4 6]]
@@ -251,8 +253,7 @@ print(bestTime)
 #     probabilities[cord] = tau_x_etas[cord] / tau_x_eta_sum
 
 
-#the coordinates you can go from a coordinate and its pheromones
-
+# the coordinates you can go from a coordinate and its pheromones
 
 
 # pheromones = {
@@ -274,15 +275,11 @@ for fromCord in pheromones:
 for fromCord, toCord in pheromones.items():
     for key in toCord:
         print(toCord[key])
-        
+
 for iteration in range(maxIteration):
     for ant in range(numAnts):
-    
+
 """
-
-
-
-
 
 """
 Initialize the grid and pheromone matrix
