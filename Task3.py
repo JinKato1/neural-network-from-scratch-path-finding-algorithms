@@ -2,7 +2,7 @@ import torch
 import torchvision
 import sklearn
 from sklearn.metrics import confusion_matrix
-
+from time import time
 
 def load_data(batch_size):
     trans = torchvision.transforms.Compose([torchvision.transforms.ToTensor()])
@@ -39,7 +39,7 @@ def init_nn(nn_shape):
 """
 hyper-parameters
 """
-batch_size = 10
+batch_size = 100
 """
 the shape of the neural network architecture
 the first value is the input_size, the last value is the output size 
@@ -47,12 +47,13 @@ the values in between are the hidden layers and their sizes
 """
 nn_shape = [784, 30, 10]
 learning_rate = 3
-num_epochs = 1
+num_epochs = 3
 
 #loading data
 train_loader, test_loader = load_data(batch_size=batch_size)
 neural_net = init_nn(nn_shape)
 optim = torch.optim.SGD(neural_net.parameters(), lr=learning_rate)
+
 
 for epoch in range(num_epochs):
     for inputs, targets in train_loader:
@@ -70,6 +71,7 @@ for epoch in range(num_epochs):
         if targets.shape == output.shape:
             torch.nn.MSELoss()(output, targets).backward()
             optim.step()
+
 
 #I used the code that I found from https://towardsdatascience.com/handwritten-digit-mnist-pytorch-977b5338e627
 #written by Amitrajit Bose for the testing correct results

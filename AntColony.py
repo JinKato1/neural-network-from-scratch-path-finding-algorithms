@@ -2,6 +2,7 @@ import numpy as np
 import random
 import Task1_Utils
 import time as current_time
+import time as currentTime
 
 """
 A graph repsentation of the connected coordinates
@@ -34,20 +35,6 @@ def init_pheromones():
     return pheromones
 
 
-def update_ants(num_ants):
-
-    bestTime = 0
-    bestPath = []
-    ants = []
-
-    for ant in range(num_ants):
-        time, path = ant_path()
-        ants.append(ant)
-        if time < bestTime:
-            bestTime = time
-            bestPath = path
-
-
 #gets the path from start to finish of an ant
 def ant_path():
     currentCord = startCord
@@ -57,27 +44,12 @@ def ant_path():
     totalTime = 0
 
     while currentCord != endCord:
-        if currentCord in deadEnds:
-            deadEnd = deadEnds[currentCord]
-        else:
-            deadEnd = []
-        next_cord = choosePath(currentCord, currentPath, deadEnd)
+        next_cord = choosePath(currentCord, currentPath)
         #means that it was a dead end
-        if next_cord == currentCord:
+        if next_cord == -1:
             return -1
-        #     print("was dead end")
-        #     if next_cord in deadEnds:
-        #         deadEnds.pop(next_cord)
-        #     #updating the current path
-        #     popped = currentPath.pop()
-        #     try:
-        #         deadEnds[currentPath[-1]].append(popped)
-        #     except KeyError:
-        #         deadEnds[currentPath[-1]] = [popped]
-        #     currentCord = currentPath[-1]
-        # else:
-        currentCord = next_cord
         currentPath.append(next_cord)
+        currentCord = next_cord
 
     #calculating the total time of the path
     for coord in currentPath:
@@ -86,16 +58,14 @@ def ant_path():
     return totalTime, currentPath
 
 
-
-
 #takes  current coordinate of the ant and the path (a list of tuples of coordinates) that the ant has taken
 #returns the next coordinate that the ant probabilisticly took. Returns the input coordinate if it is a deadend
-def choosePath(currentCord, currentPath, deadEnds = []):
+def choosePath(currentCord, currentPath):
     tau_x_etas = {}
     tau_x_eta_sum = 0
     probabilities = {}
     for nextCord in pheromones[currentCord]:
-        if nextCord not in currentPath and nextCord not in deadEnds:
+        if nextCord not in currentPath:
             pheromone = pheromones[currentCord][nextCord]
             weight = weight_grid[nextCord]
             tau_x_eta = (pheromone ** alpha) * ((Q / weight) ** beta)
@@ -107,7 +77,7 @@ def choosePath(currentCord, currentPath, deadEnds = []):
 
     # if there are no value for tau times etas list that means that it is a dead end
     if not probabilities:
-        return currentCord
+        return -1
     elif len(probabilities) == 1: #means there is only one choice
         return list(probabilities.keys())[0]
     else: #implementing the roulette wheel
@@ -126,11 +96,6 @@ def choosePath(currentCord, currentPath, deadEnds = []):
                 return list(probs)[i]
             if cumulSum[i + 1] <= rand_num <= cumulSum[i]:
                 return list(probs)[i]
-
-        #finding the coordinate from the chosen probability
-        # for cord, prob in probabilities.items():
-        #     if prob == chosenProb:
-        #         return cord
 
 
 def update_pheromones(pheromones, ants):
@@ -151,15 +116,25 @@ def update_pheromones(pheromones, ants):
     return pheromones
 
 
-"""
-def run_aco(grid, num_ants = 2, maxIteration = 5, rho = 3, Q = 1,alpha = 1, beta = 1):
-    # weight grid
-    num_row = 5
-    num_col = 5
-    # initializes the weight between 1 to 10 instead of 0 to 9 since one of the equation use the weight as a denominator
-    # and you can't divide by 0. The added 1 will be subtracted at the end when we find the shortest path.
-    weight_grid = np.random.randint(1, 10, (num_row, num_col))
-    # weight_grid = Task1_Utils.test_grids(num_row, num_col, low=1, high=10)[2][0]
+#parameters
+#evaporation rate
+rho = 0.5
+Q = 1
+alpha = 3
+beta = 5
+num_ants = 4
+maxIteration = 100
+#weight grid
+#initializes the weight between 1 to 10 instead of 0 to 9 since one of the equation use the weight as a denominator
+#and you can't divide by 0. The added 1 will be subtracted at the end when we find the shortest path.
+#weight_grid = np.random.randint(1, 10, (num_row, num_col))
+
+for dim in range(20, 600, 10):
+    print(dim)
+    time0 = currentTime.time()
+
+    weight_grid = np.random.randint(1, 10, (dim, dim))
+    num_row, num_col = weight_grid.shape
 
     pheromones = {}
     startCord = (0, 0)
@@ -173,7 +148,10 @@ def run_aco(grid, num_ants = 2, maxIteration = 5, rho = 3, Q = 1,alpha = 1, beta
     for i in range(maxIteration):
         ants = []
         for ant in range(num_ants):
-            time, path = ant_path()
+            time_path = ant_path()
+            while time_path == -1:
+                time_path = ant_path()
+            time, path = time_path
             ants.append([time, path])
             if time < bestTime:
                 bestTime = time
@@ -183,24 +161,12 @@ def run_aco(grid, num_ants = 2, maxIteration = 5, rho = 3, Q = 1,alpha = 1, beta
 
     # subtracting the 1 that I initially added to avoid dividing by zero
     bestTime = bestTime - 1 * len(bestPath)
+
+    print((currentTime.time() - time0))
+
 """
-#parameters
-rho = 3
-Q = 1
-alpha = 1
-beta = 1
-num_ants = 2
-maxIteration = 1
-#weight grid
-#initializes the weight between 1 to 10 instead of 0 to 9 since one of the equation use the weight as a denominator
-#and you can't divide by 0. The added 1 will be subtracted at the end when we find the shortest path.
-#weight_grid = np.random.randint(1, 10, (num_row, num_col))
-weight_grid = Task1_Utils.test_grids(20, 20, low=1, high=10)[0][0]
+weight_grid = np.random.randint(0, 9, (dim, dim))
 num_row, num_col = weight_grid.shape
-
-print(weight_grid)
-#weight_grid = Task1_Utils.test_grids(num_row, num_col, low=1, high=10)[2][0]
-
 
 pheromones = {}
 startCord = (0, 0)
@@ -208,8 +174,6 @@ endCord = (num_row - 1, num_col - 1)
 #initially set to max time
 bestTime = 10 * num_row * num_col
 bestPath = []
-
-
 
 pheromones = init_pheromones()
 
@@ -232,67 +196,22 @@ bestTime = bestTime - 1 * len(bestPath)
 print(bestPath)
 print(bestTime)
 """
-[[0 5 0]
- [0 4 6]]
-(2, 0)
-"""
-# currentCord = (0, 0)
-# tau_x_etas = {}
-# tau_x_eta_sum = 0
-# probabilities = {}
-# for nextCord in pheromones[currentCord]:
-#     pheromone = pheromones[currentCord][nextCord]
-#     weight = weightGrid[nextCord]
-#     tau_x_eta = (pheromone ** alpha) * ((Q / weight) ** beta)
-#     tau_x_etas[nextCord] = tau_x_eta
-#     tau_x_eta_sum += tau_x_eta
-#
-# for cord in tau_x_etas:
-#     probabilities[cord] = tau_x_etas[cord] / tau_x_eta_sum
-
-
-#the coordinates you can go from a coordinate and its pheromones
-
-
-
-# pheromones = {
-#     (0, 0): {(0, 1): 0.5, (1, 0): 0.5},
-#     (0, 1): {(1, 1): 0.5},
-#     (1, 0): {(1, 1): 0.1},
-#     (1, 1): {}
-# }
-
-# for fromCord, toCord in pheromones.items():
-#     print(fromCord)
-#     print(toCord)
 
 """
-for fromCord in pheromones:
-    for toCord in pheromones[fromCord]:
-        print(pheromones[fromCord][toCord])
-
-for fromCord, toCord in pheromones.items():
-    for key in toCord:
-        print(toCord[key])
-        
-for iteration in range(maxIteration):
-    for ant in range(numAnts):
-    
-"""
-
-
-
-
-
-"""
-Initialize the grid and pheromone matrix
-Then for t = 1 to iteration_threshhold
-    for k = 1 to numAnts
-        for each move until end
-            let ant move based on Pij^k
-        Calculate Lk
-        Check if Lk is the shortest
-
-    update pheromone by formulat Tij
-
+10
+0.0009963512420654297
+20
+0.005984067916870117
+30
+0.04338955879211426
+40
+0.05687570571899414
+50
+2.1218719482421875
+60
+15.032114028930664
+70
+16.117313385009766
+80
+more than an hour 
 """

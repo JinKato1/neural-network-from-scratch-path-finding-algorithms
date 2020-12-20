@@ -107,12 +107,14 @@ def evalTime(dim, func):
 
 
 
-test_grids = Task1_Utils.test_grids(5, 5)
-time0 = time()
-array = np.random.randint(0, 9, (7, 7))
 
-shortest_path_cost, shortest_path = checkNode(array)
-print("Training Time (in minutes) =", (time() - time0)/60)
+for i in range(2, 100, 1):
+    print(i)
+    time0 = time()
+    array = np.random.randint(0, 9, (i, i))
+    shortest_path_cost, shortest_path = checkNode(array)
+    print("Training Time (in minutes) =", (time() - time0))
+
 # print(shortest_path_cost, shortest_path)
 # time0 = time()
 #

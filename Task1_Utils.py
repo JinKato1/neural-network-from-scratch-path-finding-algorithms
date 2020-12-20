@@ -6,6 +6,7 @@ import numpy as np
 #First grid has 0s for the first row and 0s at the end of each row
 #second grid has 0s at the beginning of each row and all zeroes the last row
 #the third grid has a zig zag pattern of zeroes and the number of rows and columns must be the same for it to work
+#you can also set the low value and high value (need to change to low=1 and high=10 for ant colony)
 def test_grids(num_rows, num_cols, low=0, high=9):
     test_grids = []
     nines_grid = np.full((num_rows, num_cols), high)

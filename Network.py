@@ -3,7 +3,8 @@ import numpy as np
 import gzip
 import _pickle as cPickle
 import random
-
+import time as time
+import pickle
 
 def sigmoid(num):
     return 1 / (1 + math.exp(- num))
@@ -232,23 +233,31 @@ def update_wb_mtrx(wb_mtrx, gradc_mtrx):
 #         random.shuffle(training_data)
 #         mini_batches =
 
-def minibatch_sgd(mini_batches, wb_mtrx):
-    for idx, mini_batch in enumerate(mini_batches):
-        if idx % 200 == 0:
-            print(evaluate(test_data, wb_mtrx, 500))
-        gradc_mtrx = []
-        for mtrx in wb_mtrx:
-            gradc_mtrx.append(np.zeros(mtrx.shape))
+def minibatch_sgd(mini_batches, wb_mtrx, epochs):
+    for epoch in range(epochs):
+        time0 = time.time()
+        for idx, mini_batch in enumerate(mini_batches):
 
-        for sample in mini_batch:
-            inputs = sample[0]
-            target = sample[1].flatten()
+            # if idx % 200 == 0:
+            #     print(time.time() - time0)
+            #     print(evaluate(test_data, wb_mtrx, 10000))
+            gradc_mtrx = []
+            for mtrx in wb_mtrx:
+                gradc_mtrx.append(np.zeros(mtrx.shape))
 
-            out_mtrx = feed_forward(wb_mtrx, inputs)
-            gradc_mtrx, o_errs = output_layer_back(wb_mtrx, out_mtrx, target, gradc_mtrx)
-            gradc_mtrx = hidden_layer_back(wb_mtrx, out_mtrx, o_errs, inputs, gradc_mtrx)
+            for sample in mini_batch:
+                inputs = sample[0]
+                target = sample[1].flatten()
 
-        wb_mtrx = update_wb_mtrx(wb_mtrx, gradc_mtrx)
+                out_mtrx = feed_forward(wb_mtrx, inputs)
+                gradc_mtrx, o_errs = output_layer_back(wb_mtrx, out_mtrx, target, gradc_mtrx)
+                gradc_mtrx = hidden_layer_back(wb_mtrx, out_mtrx, o_errs, inputs, gradc_mtrx)
+
+            wb_mtrx = update_wb_mtrx(wb_mtrx, gradc_mtrx)
+
+            accuracy = evaluate(test_data, wb_mtrx, 10000)
+
+        print("Training Time:" + str(time.time() - time0) + " "+str(accuracy))
     return wb_mtrx
 #not working version of
 
@@ -261,14 +270,25 @@ training_data = list(training_data)
 test_data = list(test_data)
 
 wb_mtrx = init_weights_bias(nn_shape_size)
+
+
+
 #matrix used to store the gradient of C, initiazed with 0
 
-batch_size = 10
+batch_size = 100
+epochs = 3
 
 mini_batches = [training_data[i: i + batch_size] for i in range(0, len(training_data), batch_size)]
 
 
-wb_mtrx = minibatch_sgd(mini_batches, wb_mtrx)
+
+with open("wb_mtrx", "rb") as f:
+    wb_mtrx = pickle.load(f)
+
+wb_mtrx = minibatch_sgd(mini_batches, wb_mtrx, epochs)
+
+# with open("wb_mtrx_l3-30-e4-batch30.txt", "wb") as f:
+#     cPickle.dump(wb_mtrx,f)
 
 #print(evaluate(test_data, wb_mtrx, 10000))
 # wb_mtrx = init_weights_bias([784, 30, 10])
@@ -337,14 +357,14 @@ wb_mtrx = minibatch_sgd(mini_batches, wb_mtrx)
 
 
 #working version of the example
-wb_mtrx = [np.array([[0.15, 0.20, 0.35], [0.25, 0.3, 0.35]]),
-           np.array([[0.40, 0.45, 0.6], [0.50, 0.55, 0.6]])]
-wb_mtrx = init_weights_bias(nn_shape_size)
+# wb_mtrx = [np.array([[0.15, 0.20, 0.35], [0.25, 0.3, 0.35]]),
+#            np.array([[0.40, 0.45, 0.6], [0.50, 0.55, 0.6]])]
+# wb_mtrx = init_weights_bias(nn_shape_size)
 # ex_wb = [np.array([[0.149780716, 0.19956143, 0.35], [0.24975114, 0.29950229, 0.35]]),
 #            np.array([[0.35891648, 0.408666186, 0.6], [0.511301270, 0.561370121, 0.6]])]
 # ex_input = [0.05, 0.1, 1]
 # ex_target = [0.01, 0.99]
-
+"""
 inputs = training_data[0][0]
 target = training_data[0][1].flatten()
 print("target:" + str(target))
@@ -368,3 +388,4 @@ output = feed_forward(wb_mtrx, inputs)
 out = output[-1]
 print(np.argmax(out))
 print(evaluate([(inputs,5)], wb_mtrx, 1))
+"""
