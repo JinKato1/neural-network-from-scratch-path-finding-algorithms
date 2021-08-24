@@ -1,3 +1,4 @@
+# programming-mathematics-for-ai
 ### shortest path algorithms & Neural Network from scratch & PyTorch implmentation of the Neural Network  
 
 You need to develop a simple game consisting of a
