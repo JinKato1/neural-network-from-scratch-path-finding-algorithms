@@ -1,4 +1,4 @@
-# shortest path algorithms & Neural Network from scratch & PyTorch implmentation of the Neural Network  
+# shortest path algorithms
 
 You need to develop a simple game consisting of a
 rectangular grid (of size height x width ) where each cell has a random integer value between
