@@ -1,6 +1,4 @@
 # Programming and Mathematics For Ai
-## shortest path algorithms & Neural Network from scratch & PyTorch implmentation of the Neural Network  
-
 
 ## Shortest path algorithms
 Finding the shortest path for a rectangular grid (of size height x width ) where each cell has a random integer value between
