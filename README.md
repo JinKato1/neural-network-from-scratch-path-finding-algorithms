@@ -30,7 +30,7 @@ The Neural Network has
   
   -Backpropagation to train the network 
   
-  -90% accuracy
+  -92% accuracy
  
 ## Neural Network created using Pytorch
 PyTorch is a popular open source machine learning framework developed primarily by Facebook's AI Research lab. Implemented a multi-layer Neural Network that classifies handwritten digits. 
